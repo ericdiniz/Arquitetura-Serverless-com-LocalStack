@@ -1,0 +1,11 @@
+id,nome,categoria,preco,estoque
+1,Notebook Dell XPS 15,Informática,8500.00,15
+2,Mouse Logitech MX Master,Periféricos,450.00,50
+3,Teclado Mecânico Keychron,Periféricos,890.00,30
+4,Monitor LG UltraWide 34",Monitores,2800.00,20
+5,Webcam Logitech C920,Acessórios,650.00,25
+6,Headset HyperX Cloud,Áudio,780.00,40
+7,SSD Samsung 1TB,Armazenamento,580.00,60
+8,HD Externo Seagate 2TB,Armazenamento,420.00,35
+9,Cadeira Gamer ThunderX3,Móveis,1200.00,12
+10,Mesa Gamer Pro,Móveis,1800.00,8

@@ -1,0 +1,200 @@
+service: data-processing-service
+
+frameworkVersion: "^3.38.0"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: ${opt:stage, 'local'}
+  region: us-east-1
+  deploymentBucket:
+    name: data-processing-deploy-352801351518-1765111449
+  environment:
+    TABLE_NAME: ${self:custom.tableName}
+    BUCKET_NAME: ${self:custom.bucketName}
+    TOPIC_ARN:
+      Ref: DataProcessingTopic
+    AWS_ENDPOINT_URL: ${env:AWS_ENDPOINT_URL, ''}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - Fn::GetAtt:
+                - ProcessedDataTable
+                - Arn
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:ListBucket
+          Resource:
+            - Fn::GetAtt:
+                - DataProcessingBucket
+                - Arn
+            - Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - DataProcessingBucket
+                      - Arn
+                  - "/*"
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - Ref: DataProcessingTopic
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+custom:
+  tableName: ProcessedData-${aws:accountId}-${self:provider.stage}
+  bucketName: data-processing-bucket-${aws:accountId}-${self:provider.stage}
+  topicName: data-processing-notifications-${aws:accountId}-${self:provider.stage}
+
+  localstack:
+    stages:
+      - local
+    host: http://localhost
+    edgePort: 4566
+    autostart: false
+    endpoint: http://localhost:4566
+    lambda:
+      mountCode: false
+    docker:
+      sudo: false
+
+plugins:
+  - serverless-offline
+
+functions:
+  dataProcessor:
+    handler: src/handlers/dataProcessor.handler
+    name: DataProcessorFunction
+    description: Processa arquivos CSV do S3 e salva no DynamoDB
+    timeout: 60
+    memorySize: 256
+    events:
+      - s3:
+          bucket:
+            Ref: DataProcessingBucket
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: input/
+            - suffix: .csv
+          existing: true
+
+  createRecord:
+    handler: src/handlers/createRecord.handler
+    name: CreateRecordFunction
+    description: API REST para criar registros no DynamoDB
+    timeout: 10
+    memorySize: 128
+    events:
+      - http:
+          path: records
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    DataProcessingBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+
+    DataProcessorLambdaPermissionS3:
+      Type: AWS::Lambda::Permission
+      Properties:
+        FunctionName:
+          Fn::GetAtt:
+            - DataProcessorLambdaFunction
+            - Arn
+        Action: lambda:InvokeFunction
+        Principal: s3.amazonaws.com
+        SourceArn:
+          Fn::GetAtt:
+            - DataProcessingBucket
+            - Arn
+
+    ProcessedDataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        Tags:
+          - Key: Environment
+            Value: ${self:provider.stage}
+          - Key: Service
+            Value: ${self:service}
+
+    DataProcessingTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:custom.topicName}
+        DisplayName: Data Processing Notifications
+        Tags:
+          - Key: Environment
+            Value: ${self:provider.stage}
+
+  Outputs:
+    BucketName:
+      Description: Nome do bucket S3
+      Value:
+        Ref: DataProcessingBucket
+      Export:
+        Name: ${self:service}-${self:provider.stage}-BucketName
+
+    TableName:
+      Description: Nome da tabela DynamoDB
+      Value:
+        Ref: ProcessedDataTable
+      Export:
+        Name: ${self:service}-${self:provider.stage}-TableName
+
+    TopicArn:
+      Description: ARN do tópico SNS
+      Value:
+        Ref: DataProcessingTopic
+      Export:
+        Name: ${self:service}-${self:provider.stage}-TopicArn
+
+    FunctionArn:
+      Description: ARN da função Lambda principal
+      Value:
+        Fn::GetAtt:
+          - DataProcessorLambdaFunction
+          - Arn
+      Export:
+        Name: ${self:service}-${self:provider.stage}-FunctionArn
+
+    ApiEndpoint:
+      Description: URL do API Gateway
+      Value:
+        Fn::Sub: http://localhost:4566/restapis/${ApiGatewayRestApi}/local/_user_request_

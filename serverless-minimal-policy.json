@@ -1,0 +1,67 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "CloudFormation",
+            "Effect": "Allow",
+            "Action": [
+                "cloudformation:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "S3ForServerlessPackaging",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:CreateBucket",
+                "s3:DeleteObject"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "LambdaAndRelated",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:*",
+                "logs:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "DynamoDBAndSNS",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:*",
+                "sns:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMRoleCreateAndPassRole",
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateRole",
+                "iam:PutRolePolicy",
+                "iam:AttachRolePolicy",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:GetRolePolicy",
+                "iam:DeleteRole",
+                "iam:DeleteRolePolicy",
+                "iam:DetachRolePolicy"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "STS",
+            "Effect": "Allow",
+            "Action": [
+                "sts:GetCallerIdentity"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "httpMethod": "POST",
+    "path": "/records",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "body": "{\"nome\":\"Produto de Teste API\",\"categoria\":\"Testes\",\"preco\":99.99,\"estoque\":100}",
+    "requestContext": {
+        "identity": {
+            "sourceIp": "127.0.0.1"
+        }
+    }
+}

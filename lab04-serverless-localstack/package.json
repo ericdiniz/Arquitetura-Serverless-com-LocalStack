@@ -1,0 +1,48 @@
+{
+    "name": "lab04-serverless-localstack",
+    "version": "1.0.0",
+    "description": "Pipeline de processamento de dados serverless com LocalStack",
+    "main": "src/handlers/dataProcessor.js",
+    "scripts": {
+        "setup": "node scripts/setup.js",
+        "test": "node scripts/test-pipeline.js",
+        "deploy": "serverless deploy --stage local --verbose",
+        "deploy:function": "serverless deploy function -f dataProcessor --stage local",
+        "remove": "serverless remove --stage local",
+        "logs": "serverless logs -f dataProcessor --stage local",
+        "logs:tail": "serverless logs -f dataProcessor --stage local -t",
+        "invoke": "serverless invoke -f dataProcessor --stage local --path tests/test-event.json",
+        "invoke:api": "serverless invoke -f createRecord --stage local --path tests/test-api.json",
+        "info": "serverless info --stage local",
+        "docker:up": "docker-compose up -d",
+        "docker:down": "docker-compose down",
+        "docker:logs": "docker-compose logs -f localstack"
+    },
+    "keywords": [
+        "serverless",
+        "localstack",
+        "aws",
+        "lambda",
+        "nodejs",
+        "faas"
+    ],
+    "author": "Aluno PUC Minas",
+    "license": "MIT",
+    "dependencies": {
+        "aws-sdk": "^2.1691.0",
+        "uuid": "^9.0.1",
+        "csv-parser": "^3.0.0"
+    },
+    "devDependencies": {
+        "serverless": "^3.38.0",
+        "serverless-localstack": "^1.2.0",
+        "serverless-offline": "^13.8.1",
+        "@types/node": "^20.17.0",
+        "@types/aws-lambda": "^8.10.145",
+        "eslint": "^8.57.1"
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    }
+}

@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  localstack:
+    container_name: localstack-serverless-lab
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566" # Gateway principal LocalStack
+      - "4510-4559:4510-4559" # Range para serviços externos
+    environment:
+      - SERVICES=lambda,dynamodb,s3,sns,iam,logs,cloudwatch,cloudformation,apigateway
+      - DEBUG=1
+      - LS_LOG=INFO
+      # Use the new Lambda provider (no Docker socket required).
+      - PERSISTENCE=0
+      # If you prefer containerized Lambdas, mount the Docker socket and set LAMBDA_EXECUTOR=docker
+      # Run Lambdas in-process (no Docker socket required). This avoids mounting the
+      # Docker socket on macOS and is suitable for local testing with LocalStack.
+      - LAMBDA_EXECUTOR=local
+    volumes:
+      - localstack-data:/var/lib/localstack
+    networks:
+      - localstack-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  localstack-data:
+    driver: local
+
+networks:
+  localstack-network:
+    driver: bridge
