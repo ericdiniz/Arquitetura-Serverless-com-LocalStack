@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  localstack:
+    image: localstack/localstack:2.2
+    container_name: localstack
+    ports:
+      - "4566:4566" # edge port (recommended)
+      - "4572:4572" # legacy S3
+    environment:
+      - SERVICES=s3,sqs,sns,dynamodb
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./localstack-data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+# Optional: small backend can be run outside compose; see backend-localstack/README.md

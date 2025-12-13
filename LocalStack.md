@@ -1,4 +1,4 @@
-## ☁️ Simulação de Cloud com LocalStack (31 Pontos)
+e## ☁️ Simulação de Cloud com LocalStack (31 Pontos)
 
 **Contexto:** Introdução a Cloud AWS em ambiente local.
 **Objetivo:** Substituir o armazenamento de arquivos locais ou introduzir armazenamento de objetos (S3) para as fotos tiradas, utilização do SQS/SNS e DynamoDB.
